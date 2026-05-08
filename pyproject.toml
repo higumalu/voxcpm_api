@@ -1,0 +1,32 @@
+[project]
+name = "voxcpm_api"
+version = "0.1.0"
+description = "VoxCPM podcast TTS API service"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "numpy",
+    "opencc-python-reimplemented",
+    "pydantic>=2",
+    "scipy",
+    "soundfile",
+    "torch==2.10.0",
+    "torchaudio==2.10.0",
+    "uvicorn",
+    "voxcpm>=2.0.2",
+]
+
+[dependency-groups]
+dev = [
+    "httpx",
+    "pytest",
+    "pytest-asyncio",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["tts_api"]
+
