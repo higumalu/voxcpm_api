@@ -1,0 +1,32 @@
+[project]
+name = "voxcpm_api"
+version = "0.2.0"
+description = "VoxCPM Voice TTS API service for Hermes Agent"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "fastapi",
+    "httpx",
+    "numpy",
+    "pydantic>=2",
+    "soundfile",
+    "torch==2.10.0",
+    "torchaudio==2.10.0",
+    "uvicorn",
+    "voxcpm>=2.0.2",
+]
+
+[project.scripts]
+voxcpm-hermes-bridge = "voxcpm_api.hermes_bridge:main"
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["voxcpm_api", "voxcpm_api.routers"]
