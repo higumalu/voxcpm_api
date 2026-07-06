@@ -11,9 +11,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
         curl \
-        python3.11 \
-        python3.11-venv \
-        python3.11-dev \
+        python3.12 \
+        python3.12-venv \
+        python3.12-dev \
         libsndfile1 \
     && rm -rf /var/lib/apt/lists/*
 
