@@ -38,10 +38,39 @@ uv run uvicorn voxcpm_api.main:app --host 0.0.0.0 --port 8000
 
 ## Docker 執行（CUDA）
 
+### Docker Compose（建議）
+
+```bash
+docker compose up --build -d
+```
+
+停止服務：
+
+```bash
+docker compose down
+```
+
+環境變數可透過專案根目錄的 `.env` 覆寫（例如 `VOXCPM_MODEL_NAME`、`VOXCPM_DEVICE`）。
+
+### 手動 docker run
+
 ```bash
 docker build -t voxcpm-api .
+```
+
+啟動容器（bash / Git Bash）：
+
+```bash
 docker run --gpus all -p 8000:8000 \
   -v "$(pwd)/voices:/app/voices" \
+  voxcpm-api
+```
+
+啟動容器（PowerShell）：
+
+```powershell
+docker run --gpus all -p 8000:8000 `
+  -v "${PWD}/voices:/app/voices" `
   voxcpm-api
 ```
 

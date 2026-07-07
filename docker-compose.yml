@@ -1,0 +1,25 @@
+services:
+  voxcpm-api:
+    build: .
+    image: voxcpm-api:latest
+    container_name: voxcpm-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./voices:/app/voices
+    environment:
+      VOXCPM_VOICES_DIR: /app/voices
+      VOXCPM_MODEL_NAME: ${VOXCPM_MODEL_NAME:-openbmb/VoxCPM2}
+      VOXCPM_LOAD_DENOISER: ${VOXCPM_LOAD_DENOISER:-false}
+      VOXCPM_OPTIMIZE: ${VOXCPM_OPTIMIZE:-false}
+      VOXCPM_DEVICE: ${VOXCPM_DEVICE:-auto}
+    gpus: all
+    mem_limit: 2g
+    memswap_limit: 2g
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
