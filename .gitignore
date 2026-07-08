@@ -10,3 +10,5 @@ build/
 voices/
 tts_outputs/
 .DS_Store
+scripts/output
+.env

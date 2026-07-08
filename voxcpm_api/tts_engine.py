@@ -27,8 +27,12 @@ class TTSEngine:
 
     @staticmethod
     def _default_model_loader() -> Any:
+        from voxcpm_api.cuda_compat import patch_safetensors_cuda_loading
+
+        patch_safetensors_cuda_loading()
         from voxcpm import VoxCPM
 
+        patch_safetensors_cuda_loading()
         return VoxCPM.from_pretrained(
             settings.model_name,
             load_denoiser=settings.load_denoiser,

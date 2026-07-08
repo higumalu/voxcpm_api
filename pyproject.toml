@@ -4,6 +4,7 @@ version = "0.2.0"
 description = "VoxCPM Voice TTS API service for Hermes Agent"
 requires-python = ">=3.11,<3.13"
 dependencies = [
+    "accelerate",
     "fastapi",
     "httpx",
     "numpy",
@@ -27,6 +28,15 @@ dev = [
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+torchaudio = { index = "pytorch-cu128" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
 
 [tool.setuptools]
 packages = ["voxcpm_api", "voxcpm_api.routers"]
