@@ -19,7 +19,7 @@ def _load_prompt(path: Path) -> str:
 
 
 # --- 在這裡修改 ---
-REFERENCE_WAV_PATH = "scripts/ref/ref.wav"
+REFERENCE_WAV_PATH = None #"scripts/ref/ref.wav"
 REFERENCE_PROMPT_WAV_PATH = None   # "ref.wav"                 # 參考音檔（決定聲線）
 REFERENCE_PROMPT_TEXT = None       # "你好，這是參考語音。"      # 參考音檔的逐字稿
 TEXT_PROMPT = _load_prompt(_SCRIPT_DIR / "prompt" / "text_prompt.txt")
