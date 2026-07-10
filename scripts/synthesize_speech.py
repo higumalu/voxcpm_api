@@ -8,6 +8,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+from numpy import True_
 import soundfile as sf
 
 _SCRIPT_DIR = Path(__file__).resolve().parent
@@ -18,8 +19,9 @@ def _load_prompt(path: Path) -> str:
 
 
 # --- 在這裡修改 ---
-REFERENCE_WAV_PATH = None   # "ref.wav"                 # 參考音檔（決定聲線）
-REFERENCE_TEXT = None       # "你好，這是參考語音。"      # 參考音檔的逐字稿
+REFERENCE_WAV_PATH = "scripts/ref/ref.wav"
+REFERENCE_PROMPT_WAV_PATH = None   # "ref.wav"                 # 參考音檔（決定聲線）
+REFERENCE_PROMPT_TEXT = None       # "你好，這是參考語音。"      # 參考音檔的逐字稿
 TEXT_PROMPT = _load_prompt(_SCRIPT_DIR / "prompt" / "text_prompt.txt")
 VOICE_PROMPT = _load_prompt(_SCRIPT_DIR / "prompt" / "voice_prompt.txt")
 TEXT = f"({VOICE_PROMPT}) {TEXT_PROMPT}".strip()
@@ -28,7 +30,7 @@ OUTPUT_DIR = "scripts/output/"
 MODEL_NAME = "openbmb/VoxCPM2"
 CFG_VALUE = 2.0
 INFERENCE_TIMESTEPS = 30
-batch_number = 10
+batch_number = 5
 
 # ----------------
 
@@ -52,11 +54,12 @@ def main() -> int:
         wav = model.generate(
             text=TEXT,
             reference_wav_path=REFERENCE_WAV_PATH,
-            prompt_wav_path=REFERENCE_WAV_PATH,
-            prompt_text=REFERENCE_TEXT,
+            prompt_wav_path=REFERENCE_PROMPT_WAV_PATH,
+            prompt_text=REFERENCE_PROMPT_TEXT,
             cfg_value=CFG_VALUE,
             inference_timesteps=INFERENCE_TIMESTEPS,
             normalize=True,
+            denoise=False,
         )
 
         output_path = os.path.join(

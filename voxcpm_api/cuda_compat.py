@@ -8,8 +8,42 @@ import sys
 from typing import Any, Callable
 
 
+def _patch_cuda_mem_get_info() -> None:
+    """Fix broken cgroup memory reporting on Windows Docker WSL2.
+    
+    On Windows Docker Desktop (WSL2 backend), cgroup v1 memory.max returns
+    a raw byte value (2^34 = 16 GB) that gets misinterpreted as GiB,
+    causing torch.cuda.mem_get_info() to report wildly wrong free memory.
+    This patches it to read actual VRAM via nvidia-smi.
+    """
+    import subprocess, re
+    import torch
+
+    _original_mem_get_info = torch.cuda.mem_get_info
+
+    def mem_get_info(device=None):
+        try:
+            result = subprocess.run(
+                ["nvidia-smi", "--query-gpu=memory.free,memory.total",
+                 "--format=csv,noheader,nounits", "-i", str(device or 0)],
+                capture_output=True, text=True, timeout=5
+            )
+            if result.returncode == 0:
+                free_mb, total_mb = map(float, result.stdout.strip().split(","))
+                free_bytes = int(free_mb * 1024 * 1024)
+                total_bytes = int(total_mb * 1024 * 1024)
+                return free_bytes, total_bytes
+        except Exception:
+            pass
+        return _original_mem_get_info(device)
+
+    mem_get_info._voxcpm_api_patched = True  # type: ignore[attr-defined]
+    torch.cuda.mem_get_info = mem_get_info  # type: ignore[method-assign]
+
+
 def patch_safetensors_cuda_loading() -> None:
     """Patch voxcpm loading. Call before and after ``import voxcpm``."""
+    _patch_cuda_mem_get_info()
     _patch_safetensors_load_file()
     _patch_voxcpm2_from_local()
 
@@ -100,6 +134,7 @@ def _patch_voxcpm2_from_local() -> None:
                 f"Model file not found. Expected either {safetensors_path} or {pytorch_model_path}"
             )
 
+        # Load AudioVAE to CPU only (saves ~4GB VRAM on RTX 3090)
         audiovae_safetensors_path = os.path.join(path, "audiovae.safetensors")
         audiovae_pth_path = os.path.join(path, "audiovae.pth")
         if os.path.exists(audiovae_safetensors_path) and SAFETENSORS_AVAILABLE:
@@ -114,8 +149,11 @@ def _patch_voxcpm2_from_local() -> None:
                 f"AudioVAE checkpoint not found. Expected either {audiovae_safetensors_path} or {audiovae_pth_path}"
             )
 
+        # Keep AudioVAE on CPU; GPU decoding handled in tts_engine.py generate()
+        model_state_dict = {k: v for k, v in model_state_dict.items()
+                           if not k.startswith("audio_vae.")}
         for key, value in vae_state_dict.items():
-            model_state_dict[f"audio_vae.{key}"] = value.to("cuda:0", dtype=torch.float32)
+            model_state_dict[f"audio_vae.{key}"] = value  # CPU tensor
         del vae_state_dict
         gc.collect()
 

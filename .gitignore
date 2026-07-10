@@ -11,4 +11,5 @@ voices/
 tts_outputs/
 .DS_Store
 scripts/output
+scripts/ref_data
 .env

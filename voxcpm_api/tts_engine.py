@@ -64,16 +64,39 @@ class TTSEngine:
 
         model = self._get_model()
         ref_path = str(reference_wav_path)
+
+        # Move AudioVAE to GPU for inference, then restore to CPU to free VRAM
+        audio_vae_moved = False
+        try:
+            import torch
+            audio_vae_params = [p for n, p in model.named_parameters() if "audio_vae" in n]
+            if audio_vae_params and audio_vae_params[0].device.type == "cpu":
+                for p in audio_vae_params:
+                    p.data = p.data.to("cuda")
+                audio_vae_moved = True
+        except Exception:
+            pass  # non-CUDA fallback
+
         with self._lock:
             wav = model.generate(
                 text=text,
-                reference_wav_path=ref_path,
+                reference_wav_path=None,
                 prompt_wav_path=ref_path,
                 prompt_text=reference_text,
                 cfg_value=cfg_value,
                 inference_timesteps=inference_timesteps,
                 normalize=True,
             )
+
+        # Restore AudioVAE to CPU
+        if audio_vae_moved:
+            try:
+                import torch
+                for p in audio_vae_params:
+                    p.data = p.data.to("cpu")
+                torch.cuda.empty_cache()
+            except Exception:
+                pass
 
         if hasattr(wav, "detach"):
             wav = wav.detach().cpu().numpy()

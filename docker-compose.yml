@@ -16,9 +16,10 @@ services:
       VOXCPM_DEVICE: ${VOXCPM_DEVICE:-auto}
       HF_TOKEN: ${HF_TOKEN:-}
       HF_HOME: /root/.cache/huggingface
-      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True,max_split_size_mb:512
+      CUDA_VISIBLE_DEVICES: "0"
     gpus: all
-    shm_size: "2gb"
+    shm_size: "16gb"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8000/v1/health"]
