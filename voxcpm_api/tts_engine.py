@@ -65,14 +65,21 @@ class TTSEngine:
         model = self._get_model()
         ref_path = str(reference_wav_path)
 
-        # Move AudioVAE to GPU for inference, then restore to CPU to free VRAM
         audio_vae_moved = False
+        audio_vae_params: list = []
+        audio_vae_buffers: list = []
         try:
             import torch
-            audio_vae_params = [p for n, p in model.named_parameters() if "audio_vae" in n]
+
+            tts_model = getattr(model, "tts_model", model)
+            audio_vae_params = [p for n, p in tts_model.named_parameters() if n.startswith("audio_vae.")]
+            audio_vae_buffers = [b for n, b in tts_model.named_buffers() if n.startswith("audio_vae.")]
             if audio_vae_params and audio_vae_params[0].device.type == "cpu":
-                for p in audio_vae_params:
-                    p.data = p.data.to("cuda")
+                for param in audio_vae_params:
+                    param.data = param.data.to("cuda")
+                for buf in audio_vae_buffers:
+                    buf.data = buf.data.to("cuda")
+                torch.cuda.empty_cache()
                 audio_vae_moved = True
         except Exception:
             pass  # non-CUDA fallback
@@ -88,12 +95,14 @@ class TTSEngine:
                 normalize=True,
             )
 
-        # Restore AudioVAE to CPU
         if audio_vae_moved:
             try:
                 import torch
-                for p in audio_vae_params:
-                    p.data = p.data.to("cpu")
+
+                for param in audio_vae_params:
+                    param.data = param.data.to("cpu")
+                for buf in audio_vae_buffers:
+                    buf.data = buf.data.to("cpu")
                 torch.cuda.empty_cache()
             except Exception:
                 pass

@@ -14,12 +14,20 @@ services:
       VOXCPM_LOAD_DENOISER: ${VOXCPM_LOAD_DENOISER:-false}
       VOXCPM_OPTIMIZE: "false"
       VOXCPM_DEVICE: ${VOXCPM_DEVICE:-auto}
+      VOXCPM_WSL2_DOCKER: "1"
       HF_TOKEN: ${HF_TOKEN:-}
       HF_HOME: /root/.cache/huggingface
-      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True,max_split_size_mb:512
+      # WSL2: expandable_segments needs CUDA VMM, which is unreliable in Docker/WSL2
+      PYTORCH_CUDA_ALLOC_CONF: max_split_size_mb:128
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
       CUDA_VISIBLE_DEVICES: "0"
     gpus: all
-    shm_size: "20gb"
+    ipc: host
+    shm_size: "32gb"
+    ulimits:
+      memlock: -1
+      stack: 67108864
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8000/v1/health"]

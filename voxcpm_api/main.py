@@ -4,6 +4,10 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from voxcpm_api.cuda_compat import patch_safetensors_cuda_loading
+
+patch_safetensors_cuda_loading()
+
 from voxcpm_api import __version__
 from voxcpm_api.config import settings
 from voxcpm_api.routers import health, tts, voices
